@@ -254,7 +254,7 @@ function inlinemanual_ajax_topic($topic) {
 function inlinemanual_init() {
   if (user_access('use inline manual')) {
     // Temporary force stop.
-    // TODO: clean this shit up
+    // TODO: clean this
     if (isset($_GET['tour_stop'])) {
       // Clean up.
       setcookie('tour_end', FALSE);
@@ -275,6 +275,7 @@ function inlinemanual_page_build(&$page) {
     // TODO: check if jQuery update module is enabled and version installed
     global $base_path;
     global $is_https;
+    $url_scheme = ($is_https) ? 'https://' : 'http://';
 
     // We support only clean urls right know
     // TODO: think about paths with params + FIX
@@ -289,10 +290,9 @@ function inlinemanual_page_build(&$page) {
     );
 
     // TODO: include js and css from inlinemanual CDN or local
-    $url_scheme = ($is_https) ? 'https://' : 'http://';
-    drupal_add_js( $url_scheme . 'inlinemanual.com/inm/player/inm-player.min.js', 'external');
+    drupal_add_js($url_scheme . 'inlinemanual.com/inm/player/inm-player.min.js', 'external');
     drupal_add_js('jQuery(document).ready( function() { IMP.start( ' . $config . ' ); })', array('type' => 'inline', 'scope' => 'footer', 'weight' => 100));
-    drupal_add_css( $url_scheme . 'inlinemanual.com/inm/player/inm-player.min.css', 'external');
+    drupal_add_css($url_scheme . 'inlinemanual.com/inm/player/inm-player.min.css', 'external');
 
     $page['page_bottom']['inm'] = array(
       '#weight' => 25,
