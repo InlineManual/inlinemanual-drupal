@@ -155,7 +155,8 @@ function inlinemanual_topic_load($tid) {
  * Featch all topics from through the InlineManual API
  */
 function inlinemanual_topics_fetch_all() {
-  require(dirname(__FILE__) . '/lib/InlineManual.php');
+  // We are using Drupal class registry now
+  // module_load_include('php', 'inlinemanual', 'lib/InlineManual');
   InlineManual::$site_api_key = variable_get('inlinemanual_site_key', '');
 
   // Update the database with topics listing and fetch all topics.
