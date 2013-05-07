@@ -1,0 +1,7 @@
+name = Inline Manual
+description = Drupal integration of Inline Manual service
+package = Inline Manual
+version = VERSION
+core = 7.x
+
+dependencies[] = jquery_update

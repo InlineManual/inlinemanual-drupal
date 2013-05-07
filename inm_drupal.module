@@ -1,0 +1,314 @@
+<?php
+
+/**
+ * @file
+ * Enables users to use Inline Manuals.
+ * Created by fine folks from inlinemanual.com
+ * http://inlinemanual.com
+ */
+
+/**
+ * Implements hook_menu().
+ */
+ function inm_drupal_menu() {
+  $items['admin/config/services/inm_drupal'] = array(
+ 	'title' => 'Inline Manual',
+ 	'description' => 'Topics and settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('inm_drupal_admin_list'),
+  	'access arguments' => array('administer inline manual'),
+    'file' => 'inm_drupal.admin.inc',
+  );
+
+  $items['admin/config/services/inm_drupal/list'] = array(
+    'title' => 'Topics',
+    'description' => 'List of the topics.',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -1,
+  );
+
+  $items['admin/config/services/inm_drupal/settings'] = array(
+    'title' => 'Settings',
+    'description' => 'Configure inline manual.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('inm_drupal_admin_settings_form'),
+    'access arguments' => array('administer inline manual'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inm_drupal.admin.inc',
+    'weight' => 1,
+  );
+
+  $items['admin/config/services/inm_drupal/refresh'] = array(
+    'title' => 'Refresh topics',
+    'description' => 'Update topics from server',
+    'page callback' => 'inm_drupal_admin_topics_refresh',
+    'access arguments' => array('administer inline manual'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'inm_drupal.admin.inc',
+    'weight' => 2,
+  );
+
+  $items['admin/config/services/inm_drupal/topic/%/permissions'] = array(
+    'title' => 'Edit permissions',
+    'description' => 'Edit permissions for a given topic.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('inm_drupal_admin_topic_permissions_form', 5),
+    'access arguments' => array('administer inline manual'),
+    'file' => 'inm_drupal.admin.inc',
+  );
+
+  $items['inlinemanual/topics'] = array(
+    'title' => 'List topics',
+    'page callback' => 'inm_drupal_ajax_topics',
+    'access arguments' => array('use inline manual'),
+  );
+
+  $items['inlinemanual/topic/%inm_drupal_topic'] = array(
+    'title' => 'Play topic',
+    'page callback' => 'inm_drupal_ajax_topic',
+    'page arguments' => array(2),
+    'access arguments' => array('use inline manual'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter()
+ */
+function inm_drupal_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Add action link to 'node/add' on 'admin/content' page.
+  if ($root_path == 'admin/config/services/inm_drupal') {
+    $item = menu_get_item('admin/config/services/inm_drupal/refresh');
+    if ($item['access']) {
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_action',
+        '#link' => $item,
+      );
+    }
+  }
+}
+
+/**
+ * Implements hook_permission()
+ */
+function inm_drupal_permission() {
+  $topics = inm_drupal_get_topics();
+
+  $perms = array(
+    'administer inline manual' => array(
+      'title' => t('Administer inline manual'),
+    ),
+    'view disabled inline manuals' => array(
+      'title' => t('View disabled inline manuals'),
+    ),
+    'use inline manual' => array(
+      'title' => t('Use inline manual'),
+    ),
+  );
+
+  if ($topics) {
+    foreach ($topics as $topic) {
+      $perms['view inm_drupal_topic_' . $topic->tid] = array(
+        'title' => t('View %topic_name', array('%topic_name' => $topic->title)),
+      );
+    }
+  }
+
+  return $perms;
+}
+
+/**
+ * Implements hook_theme
+ */
+function inm_drupal_theme() {
+  return array(
+    'inm_drupal_admin_topic_permissions_form' => array(
+      'render element' => 'form',
+      'file' => 'inm_drupal.admin.inc',
+    ),
+  );
+}
+
+/**
+ * Loads a topic item.
+ *
+ * @param $tid
+ *   The topic id.
+ *
+ * @return
+ *   An object describing the item.
+ */
+function inm_drupal_topic_load($tid) {
+  $topics = &drupal_static(__FUNCTION__);
+  if (!isset($topics[$tid])) {
+    $topic = db_query('SELECT * FROM {inm_topics} WHERE tid = :tid', array(':tid' => $tid))->fetchObject();
+    if ($topic) {
+      $topic->steps = (array) unserialize($topic->steps);
+    }
+    $topics[$tid] = $topic;
+  }
+  return $topics[$tid];
+}
+
+/**
+ * Featch all topics from through the InlineManual API
+ */
+function inm_drupal_topics_fetch_all() {
+  require(dirname(__FILE__) . '/lib/InlineManual.php');
+  InlineManual::$site_api_key = variable_get('inm_drupal_site_key', '');
+
+  // Update the database with topics listing and fetch all topics.
+  // Keep the visibility settings.
+  try {
+    $topics = InlineManual_Site::fetchAllTopics();
+    foreach ($topics as $topic) {
+      $topic = InlineManual_Site::fetchTopic($topic->id);
+      db_merge('inm_topics')
+          ->key(array('tid' => $topic->id))
+          ->fields(array(
+            'tid' => $topic->id,
+            'title' => $topic->title,
+            'description' => $topic->description,
+            'version' => $topic->version,
+            'steps' => serialize($topic->steps),
+            'timestamp' => 0,
+            // do not refresh status
+          ))
+          ->execute();
+    }
+  }
+  catch (InlineManual_Error $e) {
+    watchdog('inm', 'InlineManual API request failed: %error.', array('%error' => $e->getMessage(), WATCHDOG_ERROR));
+  }
+}
+
+/**
+ * Returns a list of topics ordered by title
+ */
+function inm_drupal_get_topics($status = NULL) {
+  $query = db_select('inm_topics', 't')->extend('PagerDefault')->extend('TableSort');
+  $query->fields('t',array('tid', 'title', 'description', 'status', 'version'))->orderBy('t.title');
+  if ($status == 'active') {
+    $query->condition('status', 1, '=');
+  }
+  $topics = $query->execute()->fetchAll();
+
+  return $topics;
+}
+
+/**
+ * Returns a list of accessible topics for current user
+ */
+function inm_drupal_available_topics($account = NULL) {
+  global $user;
+  $account = ($account ? $account : $user);
+
+  $available = array();
+  $topics = inm_drupal_get_topics('active');
+  if ($topics) {
+    foreach ($topics as $topic) {
+      if (user_access('view inm_drupal_topic_'. $topic->tid, $account) && ($topic->status || user_access('view disabled inline manuals', $account))) {
+        $available[$topic->tid] = $topic;
+      }
+    }
+  }
+
+  return $available;
+}
+
+/**
+ * Updates status of specified topics
+ */
+function inm_drupal_topics_update_status($status, $tids) {
+  $num_updated = db_update('inm_topics')
+    ->fields(array(
+      'status' => $status,
+    ))
+    ->condition('tid', $tids, 'IN')
+    ->execute();
+  return $num_updated;
+}
+
+/**
+ * Ajax menu callback; Return the json output with topics list.
+ */
+function inm_drupal_ajax_topics() {
+  $topics = inm_drupal_available_topics();
+  return drupal_json_output($topics);
+}
+
+/**
+ * Ajax menu callback; Return tour steps for the given topic.
+ */
+function inm_drupal_ajax_topic($topic) {
+  if (!empty($topic)) {
+    return drupal_json_output($topic->steps);
+  }
+}
+
+/**
+ * Implements hook_init()
+ */
+function inm_drupal_init() {
+  if (user_access('use inline manual')) {
+    // Temporary force stop.
+    // TODO: clean this shit up
+    if (isset($_GET['tour_stop'])) {
+      // Clean up.
+      setcookie('tour_end', FALSE);
+      unset($_COOKIE['tour_end']);
+      setcookie('tour_current_step', FALSE);
+      unset($_COOKIE['tour_current_step']);
+      setcookie('tour_active_tour', FALSE);
+      unset($_COOKIE['tour_active_tour']);
+    }
+  }
+}
+
+/**
+ * Implements hook_page_build().
+ */
+function inm_drupal_page_build(&$page) {
+  if (user_access('use inline manual')) {
+    // TODO: check if jQuery update module is enabled
+    // and version installed
+
+    global $base_path;
+    global $is_https;
+    $url_scheme = ($is_https) ? 'https://' : 'http://';
+    $module_path = 'inm_play';
+
+    // clean urls ON
+    // TODO: think about paths with params + FIX
+    if (!empty($GLOBALS['conf']['clean_url'])) {
+      $safe_base_path = $base_path;
+    }
+    else {
+      $safe_base_path = $base_path . '?q=';
+    }
+
+    $safe_base_path = $base_path;
+
+    $config = json_encode(
+      array(
+          'tour' => array('basePath' => $safe_base_path),
+          'routes' => array(
+            'topics' => url('inlinemanual/topics'),
+            'topic' => url('inlinemanual/topic/')
+          )
+      )
+    );
+
+    // TODO:
+    // include js and css from inlinemanual CDN or local
+    drupal_add_js( $url_scheme . 'inlinemanual.com/inm/player/inm-player.min.js', 'external');
+    drupal_add_js('jQuery(document).ready( function() { IMP.start( ' . $config . ' ); })', array('type' => 'inline', 'scope' => 'footer', 'weight' => 100));
+    drupal_add_css( $url_scheme . 'inlinemanual.com/inm/player/inm-player.min.css', 'external');
+
+    $page['page_bottom']['inm'] = array(
+      '#weight' => 25,
+      '#markup' => '<div id="inm-progress"><div class="inm-progress"></div></div><div id="inline-manual" data-topic-title="" data-steps=""><a id="inm-trigger" href="#"><i class="inm-icon"></i></a></div>',
+    );
+  }
+}
