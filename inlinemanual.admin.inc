@@ -3,15 +3,15 @@
 /**
  * Menu callback: content administration.
  */
-function inm_drupal_admin_list($form, $form_state) {
-  $form['admin'] = inm_drupal_admin_topics();
+function inlinemanual_admin_list($form, $form_state) {
+  $form['admin'] = inlinemanual_admin_topics();
   return $form;
 }
 
 /**
  * Form builder: Builds the node administration overview.
  */
-function inm_drupal_admin_topics() {
+function inlinemanual_admin_topics() {
   // Build the sortable table header.
   $header = array(
     'title' => array('data' => t('Title'), 'field' => 'title', 'sort' => 'asc'),
@@ -31,12 +31,11 @@ function inm_drupal_admin_topics() {
     ->fetchAll();
   
   // Prepare the list of topics.
-  $destination = drupal_get_destination();
   $options = array();
   $selection = array();
   foreach ($topics as $topic) {
     $operations = array(
-      l(t('edit permissions'), 'admin/config/services/inm_drupal/topic/'. $topic->tid .'/permissions'),    
+      l(t('edit permissions'), 'admin/config/services/inlinemanual/topic/'. $topic->tid .'/permissions'),
     );
     $options[$topic->tid] = array(
       'title' => check_plain($topic->title),
@@ -63,26 +62,25 @@ function inm_drupal_admin_topics() {
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
-    '#submit' => array('inm_drupal_admin_topics_submit'),
+    '#submit' => array('inlinemanual_admin_topics_submit'),
   );
   
   return $form;
 }
 
-function inm_drupal_admin_topics_submit($form, &$form_state) {
-  $enabled_num = $disabled_num = 0;
+function inlinemanual_admin_topics_submit($form, &$form_state) {
   $topics = $form_state['values']['topics'];
   
   // Enable checked topics 
   $enable = array_filter($topics);
   if (!empty($enable)) {
-    inm_drupal_topics_update_status(1, array_keys($enable));
+    inlinemanual_topics_update_status(1, array_keys($enable));
   }
   
   // Disable unchecked topics
   $disable = array_diff_assoc($topics, $enable);
   if (!empty($disable)) {
-    inm_drupal_topics_update_status(0, array_keys($disable));
+    inlinemanual_topics_update_status(0, array_keys($disable));
   }
   
   drupal_set_message(t('Topic updated.'));  
@@ -91,22 +89,22 @@ function inm_drupal_admin_topics_submit($form, &$form_state) {
 /**
  * Page callback for "Refresh topics"
  */
-function inm_drupal_admin_topics_refresh() {
-  inm_drupal_topics_fetch_all();
+function inlinemanual_admin_topics_refresh() {
+  inlinemanual_topics_fetch_all();
   
   drupal_set_message(t('Topics refreshed'));
   
-  drupal_goto('admin/config/services/inm_drupal');
+  drupal_goto('admin/config/services/inlinemanual');
 } 
 
 /**
  * Implements hook_admin_settings() for module settings configuration.
  */
-function inm_drupal_admin_settings_form($form_state) {
-  $form['inm_drupal_site_key'] = array(
+function inlinemanual_admin_settings_form($form_state) {
+  $form['inlinemanual_site_key'] = array(
     '#title' => t('Site API Key'),
     '#type' => 'textfield',
-    '#default_value' => variable_get('inm_drupal_site_key', ''),
+    '#default_value' => variable_get('inlinemanual_site_key', ''),
     '#size' => 60,
     '#maxlength' => 120,
     '#required' => TRUE,
@@ -119,9 +117,7 @@ function inm_drupal_admin_settings_form($form_state) {
 /**
  * Page callback for topic permissions editing 
  */
-function inm_drupal_admin_topic_permissions_form($form, &$form_state, $tid) {
-  $topic = inm_drupal_topic_load($tid);
-  
+function inlinemanual_admin_topic_permissions_form($form, &$form_state, $tid) {
   // Retrieve role names for columns.
   $role_names = user_roles();
 
@@ -137,9 +133,9 @@ function inm_drupal_admin_topic_permissions_form($form, &$form_state, $tid) {
   $options = array();
   $hide_descriptions = system_admin_compact_mode();
   
-  if ($permissions = inm_drupal_permission()) {
+  if ($permissions = inlinemanual_permission()) {
     foreach ($permissions as $perm => $perm_item) {
-      if ($perm == 'view inm_drupal_topic_'. $tid) {
+      if ($perm == 'view inlinemanual_topic_'. $tid) {
         // Fill in default values for the permission.
         $perm_item += array(
           'description' => '', 
@@ -187,15 +183,16 @@ function inm_drupal_admin_topic_permissions_form($form, &$form_state, $tid) {
   return $form;
 }
 
-function inm_drupal_admin_topic_permissions_form_submit($form, &$form_state) {
+function inlinemanual_admin_topic_permissions_form_submit($form, &$form_state) {
   module_load_include('inc', 'user', 'user.admin');
   user_admin_permissions_submit($form, $form_state);
 }
 
-function theme_inm_drupal_admin_topic_permissions_form($variables) {
+function theme_inlinemanual_admin_topic_permissions_form($variables) {
   if (isset($variables['form']['permission']) && count($variables['form']['permission'])) {
     return theme('user_admin_permissions', $variables);
-  } else {
+  }
+  else {
     return t('There are no topics associated with this ID.');
   }
 } 

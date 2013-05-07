@@ -8,13 +8,13 @@
 /**
  * Implements hook_uninstall().
  */
-function inm_drupal_uninstall() {
+function inlinemanual_uninstall() {
 }
 
 /**
  * Implements hook_schema().
  */
-function inm_drupal_schema() {
+function inlinemanual_schema() {
   $schema['inm_topics'] = array(
     'description' => 'Stores the individual topics imported from inm portal.',
     'fields' => array(
