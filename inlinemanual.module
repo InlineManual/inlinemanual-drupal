@@ -275,7 +275,9 @@ function inlinemanual_page_build(&$page) {
     // TODO: check if jQuery update module is enabled and version installed
     global $base_path;
     global $is_https;
-    $url_scheme = ($is_https) ? 'https://' : 'http://';
+    // TODO: allow to fetch player over http
+    $url_scheme = 'https://';
+    // $url_scheme = ($is_https) ? 'https://' : 'http://';
 
     // We support only clean urls right know
     // TODO: think about paths with params + FIX
