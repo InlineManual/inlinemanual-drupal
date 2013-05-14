@@ -55,12 +55,14 @@
     'page arguments' => array('inlinemanual_admin_topic_permissions_form', 5),
     'access arguments' => array('administer inline manual'),
     'file' => 'inlinemanual.admin.inc',
+    'type' => MENU_CALLBACK,
   );
 
   $items['inlinemanual/topics'] = array(
     'title' => 'List topics',
     'page callback' => 'inlinemanual_ajax_topics',
     'access arguments' => array('use inline manual'),
+    'type' => MENU_CALLBACK,
   );
 
   $items['inlinemanual/topic/%inlinemanual_topic'] = array(
@@ -68,6 +70,7 @@
     'page callback' => 'inlinemanual_ajax_topic',
     'page arguments' => array(2),
     'access arguments' => array('use inline manual'),
+    'type' => MENU_CALLBACK,
   );
 
   return $items;
