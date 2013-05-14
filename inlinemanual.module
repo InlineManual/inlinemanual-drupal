@@ -283,7 +283,12 @@ function inlinemanual_page_build(&$page) {
     // TODO: think about paths with params + FIX
     $config = json_encode(
       array(
-          'tour' => array('basePath' => $base_path),
+          'tour' => array(
+            'basePath' => $base_path,
+            'next' => t('Next »'),
+            'prev' => t('« Prev'),
+            'end' => t('End tutorial')
+          ),
           'routes' => array(
             'topics' => url('inlinemanual/topics'),
             'topic' => url('inlinemanual/topic/')
