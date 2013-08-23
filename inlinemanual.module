@@ -291,8 +291,8 @@ function inlinemanual_page_build(&$page) {
     );
 
     // TODO: include js and css from inlinemanual CDN or local
-    drupal_add_js($url_scheme . 'inlinemanual.com/inm/player2/player.min.js', 'external');
+    drupal_add_js($url_scheme . 'inlinemanual.com/inm/player2/js/player.min.js', 'external');
     drupal_add_js('jQuery(document).ready( function() { IMP.init( ' . $config . ' ); })', array('type' => 'inline', 'scope' => 'footer', 'weight' => 100));
-    drupal_add_css($url_scheme . 'inlinemanual.com/inm/player2/player.min.css', 'external');
+    drupal_add_css($url_scheme . 'inlinemanual.com/inm/player2/css/player.min.css', 'external');
   }
 }
