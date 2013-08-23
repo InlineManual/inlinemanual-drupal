@@ -192,11 +192,15 @@ function inlinemanual_topics_fetch_all() {
  */
 function inlinemanual_get_topics($status = NULL) {
   $query = db_select('inm_topics', 't')->extend('PagerDefault')->extend('TableSort');
-  $query->fields('t',array('tid', 'title', 'description', 'status', 'version'))->orderBy('t.title');
+  $query->fields('t', array('tid', 'title', 'description', 'status', 'version', 'steps'))->orderBy('t.title');
   if ($status == 'active') {
     $query->condition('status', 1, '=');
   }
   $topics = $query->execute()->fetchAll();
+
+  foreach($topics as $key => $topic) {
+    $topics[$key]->steps = unserialize($topic->steps);
+  }
 
   return $topics;
 }
@@ -259,35 +263,36 @@ function inlinemanual_page_build(&$page) {
     // TODO: check if jQuery update module is enabled and version installed
     global $base_path;
     global $is_https;
+    global $user;
     // TODO: allow to fetch player over http
     $url_scheme = 'https://';
     // $url_scheme = ($is_https) ? 'https://' : 'http://';
 
-    // We support only clean urls right know
+    // We support only clean urls right now
     // TODO: think about paths with params + FIX
     $config = json_encode(
       array(
-          'tour' => array(
-            'basePath' => $base_path,
-            'next' => t('Next »'),
-            'prev' => t('« Prev'),
-            'end' => t('End tutorial')
-          ),
-          'routes' => array(
-            'topics' => url('inlinemanual/topics'),
-            'topic' => url('inlinemanual/topic/')
-          )
+        'basePath' => $base_path,
+        'variables' => array(
+          'user_id' => $user->uid
+        ),
+        'topicsUrl' => 'inlinemanual/topics',
+        'mode' => 'tour',
+        'l10n' => array(
+          'title' => t('Get Support'),
+          'refresh' => t('Refresh'),
+          'backToTopics' => t('&laquo; Back to topics'),
+          'scrollUp' => t('Scroll up'),
+          'scrollDown' => t('Scroll down'),
+          'progress' => t('of'),
+          'poweredBy' => t('Powered by')
+        )
       )
     );
 
     // TODO: include js and css from inlinemanual CDN or local
-    drupal_add_js($url_scheme . 'inlinemanual.com/inm/player/inm-player.min.js', 'external');
-    drupal_add_js('jQuery(document).ready( function() { IMP.start( ' . $config . ' ); })', array('type' => 'inline', 'scope' => 'footer', 'weight' => 100));
-    drupal_add_css($url_scheme . 'inlinemanual.com/inm/player/inm-player.min.css', 'external');
-
-    $page['page_bottom']['inm'] = array(
-      '#weight' => 25,
-      '#markup' => '<div id="inm-progress"><div class="inm-progress"></div></div><div id="inline-manual" data-topic-title="" data-steps=""><a id="inm-trigger" href="#"><i class="inm-icon"></i></a></div>',
-    );
+    drupal_add_js($url_scheme . 'inlinemanual.com/inm/player2/player.min.js', 'external');
+    drupal_add_js('jQuery(document).ready( function() { IMP.init( ' . $config . ' ); })', array('type' => 'inline', 'scope' => 'footer', 'weight' => 100));
+    drupal_add_css($url_scheme . 'inlinemanual.com/inm/player2/player.min.css', 'external');
   }
 }
