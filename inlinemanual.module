@@ -252,25 +252,6 @@ function inlinemanual_ajax_topic($topic) {
 }
 
 /**
- * Implements hook_init()
- */
-function inlinemanual_init() {
-  if (user_access('use inline manual')) {
-    // Temporary force stop.
-    // TODO: clean this
-    if (isset($_GET['tour_stop'])) {
-      // Clean up.
-      setcookie('tour_end', FALSE);
-      unset($_COOKIE['tour_end']);
-      setcookie('tour_current_step', FALSE);
-      unset($_COOKIE['tour_current_step']);
-      setcookie('tour_active_tour', FALSE);
-      unset($_COOKIE['tour_active_tour']);
-    }
-  }
-}
-
-/**
  * Implements hook_page_build().
  */
 function inlinemanual_page_build(&$page) {
