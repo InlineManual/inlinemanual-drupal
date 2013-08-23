@@ -118,7 +118,7 @@ function inlinemanual_admin_settings_form($form_state) {
     '#size' => 60,
     '#maxlength' => 120,
     '#required' => FALSE,
-    '#description' => t('Widget title'),
+    '#description' => t('The title of the widget that end-users see.'),
   );
   return system_settings_form($form);
 }
