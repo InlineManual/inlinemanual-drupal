@@ -111,6 +111,15 @@ function inlinemanual_admin_settings_form($form_state) {
     '#description' => t('This ID is unique to each site and can be found on inline manual portal.'),
   );
 
+  $form['inlinemanual_widget_title'] = array(
+    '#title' => t('Widget title'),
+    '#type' => 'textfield',
+    '#default_value' => variable_get('inlinemanual_widget_title', 'Get support'),
+    '#size' => 60,
+    '#maxlength' => 120,
+    '#required' => FALSE,
+    '#description' => t('Widget title'),
+  );
   return system_settings_form($form);
 }
 

@@ -279,7 +279,7 @@ function inlinemanual_page_build(&$page) {
         'topicsUrl' => 'inlinemanual/topics',
         'mode' => 'tour',
         'l10n' => array(
-          'title' => t('Get Support'),
+          'title' => variable_get('inlinemanual_widget_title', 'Get support'),
           'refresh' => t('Refresh'),
           'backToTopics' => t('&laquo; Back to topics'),
           'scrollUp' => t('Scroll up'),
