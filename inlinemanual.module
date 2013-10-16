@@ -246,6 +246,11 @@ function inlinemanual_ajax_topics() {
   return drupal_json_output($topics);
 }
 
+function inlinemanual_static_topics() {
+  $topics = inlinemanual_available_topics();
+  return $topics;
+}
+
 /**
  * Ajax menu callback; Return tour steps for the given topic.
  */
@@ -276,8 +281,6 @@ function inlinemanual_page_build(&$page) {
         'variables' => array(
           'user_id' => $user->uid
         ),
-        'topicsUrl' => 'inlinemanual/topics',
-        'mode' => 'tour',
         'l10n' => array(
           'title' => variable_get('inlinemanual_widget_title', 'Get support'),
           'refresh' => t('Refresh'),
@@ -285,14 +288,18 @@ function inlinemanual_page_build(&$page) {
           'scrollUp' => t('Scroll up'),
           'scrollDown' => t('Scroll down'),
           'progress' => t('of'),
-          'poweredBy' => t('Powered by')
-        )
+          'poweredBy' => t('Powered by'),
+          'prev' => t('&laquo; Prev'),
+          'next' => t('Next &raquo;'),
+          'end' => t('End tour')
+        ),
+        'topics' => inlinemanual_static_topics()
       )
     );
 
     // TODO: include js and css from inlinemanual CDN or local
-    drupal_add_js($url_scheme . 'inlinemanual.com/inm/player2/js/player.min.js', 'external');
-    drupal_add_js('jQuery(document).ready( function() { IMP.init( ' . $config . ' ); })', array('type' => 'inline', 'scope' => 'footer', 'weight' => 100));
-    drupal_add_css($url_scheme . 'inlinemanual.com/inm/player2/css/player.min.css', 'external');
+    drupal_add_js($url_scheme . 'inlinemanual.com/inm/player2/js/inm.tour.min.js', 'external');
+    drupal_add_js('jQuery(document).ready( function() { new InmTour( ' . $config . ' ); })', array('type' => 'inline', 'scope' => 'footer', 'weight' => 100));
+    drupal_add_css($url_scheme . 'inlinemanual.com/inm/player2/css/inm.tour.min.css', 'external');
   }
 }
