@@ -120,6 +120,37 @@ function inlinemanual_admin_settings_form($form_state) {
     '#required' => FALSE,
     '#description' => t('The title of the widget that end-users see.'),
   );
+
+  // add option to change the colour of the widget
+  drupal_add_css('misc/farbtastic/farbtastic.css');
+  drupal_add_js('misc/farbtastic/farbtastic.js');
+
+  $form ['inlinemanual_widget_color'] = array(
+   '#type' => 'textfield',
+   '#title' => t('Widget Color'),
+   '#default_value' => variable_get('inlinemanual_widget_color', '#222222'),
+   '#description' => '<div id="inlinemanual_widget_colorpicker"></div>',
+   '#size' => 9,
+   '#maxlength' => 7,
+   '#suffix' => "<script type='text/javascript'>
+     jQuery(document).ready(function() {
+       jQuery('#inlinemanual_widget_colorpicker').farbtastic('#edit-inlinemanual-widget-color');
+     });
+   </script>"
+  );
+  $form ['inlinemanual_widget_text_color'] = array(
+   '#type' => 'textfield',
+   '#title' => t('Widget Text Color'),
+   '#default_value' => variable_get('inlinemanual_widget_text_color', '#ffffff'),
+   '#description' => '<div id="inlinemanual_widget_text_colorpicker"></div>',
+   '#size' => 9,
+   '#maxlength' => 7,
+   '#suffix' => "<script type='text/javascript'>
+     jQuery(document).ready(function() {
+       jQuery('#inlinemanual_widget_text_colorpicker').farbtastic('#edit-inlinemanual-widget-text-color');
+     });
+   </script>"
+  );
   return system_settings_form($form);
 }
 

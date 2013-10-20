@@ -301,5 +301,6 @@ function inlinemanual_page_build(&$page) {
     drupal_add_js($url_scheme . 'inlinemanual.com/inm/player2/js/inm.tour.min.js', 'external');
     drupal_add_js('jQuery(document).ready( function() { new InmTour( ' . $config . ' ); })', array('type' => 'inline', 'scope' => 'footer', 'weight' => 100));
     drupal_add_css($url_scheme . 'inlinemanual.com/inm/player2/css/inm.tour.min.css', 'external');
+    drupal_add_css('#InmPlayerWrapper .panel-heading { background-color: ' . variable_get('inlinemanual_widget_color', '#222222') . '; color: ' . variable_get('inlinemanual_widget_text_color', '#ffffff') . ' }', array('type' => 'inline'));
   }
 }
