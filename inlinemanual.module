@@ -58,6 +58,16 @@
     'type' => MENU_CALLBACK,
   );
 
+  $items['admin/config/services/inlinemanual/topic/%/remove'] = array(
+    'title' => 'Remove topic',
+    'description' => 'Remove topic from the Drupal database.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('inlinemanual_admin_topic_delete_confirm_form', 5),
+    'access arguments' => array('administer inline manual'),
+    'file' => 'inlinemanual.admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+
   $items['inlinemanual/topics'] = array(
     'title' => 'List topics',
     'page callback' => 'inlinemanual_ajax_topics',

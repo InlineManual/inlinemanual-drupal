@@ -36,13 +36,14 @@ function inlinemanual_admin_topics() {
   foreach ($topics as $topic) {
     $operations = array(
       l(t('edit permissions'), 'admin/config/services/inlinemanual/topic/'. $topic->tid .'/permissions'),
+      l(t('remove'), 'admin/config/services/inlinemanual/topic/'. $topic->tid .'/remove'),
     );
     $options[$topic->tid] = array(
       'title' => check_plain($topic->title),
       'description' => check_plain($topic->description),
       'status' => $topic->status ? t('enabled') : t('disabled'),
       'version' => $topic->version,
-      'operations' => implode(' ', $operations), 
+      'operations' => implode(' | ', $operations), 
     );
     $selection[$topic->tid] = $topic->status;
   }
@@ -235,4 +236,22 @@ function theme_inlinemanual_admin_topic_permissions_form($variables) {
   else {
     return t('There are no topics associated with this ID.');
   }
-} 
+}
+
+function inlinemanual_admin_topic_delete_confirm_form($form, $form_state, $tid) {
+  return confirm_form(
+    array(
+      'tid' => array('#type' => 'hidden', '#value' => $tid)
+    ),
+    t('Are you sure you want to remove the topic?'),
+    'admin/config/services/inlinemanual',
+    t('The topic will be removed from yours website database, not from the Inline Manual portal. Refetching topics will add the topic again if it has been assigned to the site.')
+  );
+}
+
+function inlinemanual_admin_topic_delete_confirm_form_submit($form, &$form_state) {
+  $tid = $form_state['values']['tid'];
+  $tid_deleted = db_delete('inm_topics')->condition('tid', $tid)->execute();
+  drupal_set_message(t('The topic has been removed from your database.'));
+  $form_state['redirect'] = 'admin/config/services/inlinemanual';
+}
