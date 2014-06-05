@@ -216,6 +216,20 @@ function inlinemanual_get_topics($status = NULL) {
 }
 
 /**
+ * Returns an array of topics ordered by title
+ */
+function inlinemanual_get_active_topics_list() {
+  $topics_list = array();
+  $topics = inlinemanual_get_topics('active');
+  if ($topics) {
+    foreach ($topics as $topic) {
+      $topics_list[$topic->tid] = $topic->title;
+    }
+  }
+  return $topics_list;
+}
+
+/**
  * Returns a list of accessible topics for current user
  */
 function inlinemanual_available_topics($account = NULL) {
@@ -313,4 +327,33 @@ function inlinemanual_page_build(&$page) {
     drupal_add_css($url_scheme . 'inlinemanual.com/inm/player/css/inm.tour.min.css', 'external');
     drupal_add_css('#InmPlayerWrapper .panel-heading { background-color: ' . variable_get('inlinemanual_widget_color', '#222222') . '; color: ' . variable_get('inlinemanual_widget_text_color', '#ffffff') . ' }', array('type' => 'inline'));
   }
+}
+
+/**
+ * Implements hook_rules_action_info().
+ */
+function inlinemanual_rules_action_info() {
+  $actions = array(
+    'inlinemanual_show_topic' => array(
+      'label' => t('Show selected topic'),
+      'group' => t('InlineManual'),
+      'parameter' => array(
+        // To select a topic.
+        'topic' => array(
+          'type' => 'integer',
+          'label' => t('Topic'),
+          'options list' => 'inlinemanual_get_active_topics_list',
+          'description' => t('Select the topic that will automatically open.'),
+        ),
+      ),
+    ),
+  );
+  return $actions;
+}
+
+/**
+ * View message for selected roles.
+ */
+function inlinemanual_show_topic($topic) {
+  drupal_add_js('jQuery(document).ready( function() { myTour._activateTopic('. $topic .', 0); });', array('type' => 'inline', 'scope' => 'footer', 'weight' => 101));
 }
