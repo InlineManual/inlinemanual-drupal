@@ -168,8 +168,6 @@ function inlinemanual_topic_load($tid) {
  * Featch all topics from through the InlineManual API
  */
 function inlinemanual_topics_fetch_all() {
-  // We are using Drupal class registry now
-  // module_load_include('php', 'inlinemanual', 'lib/InlineManual');
   InlineManual::$site_api_key = variable_get('inlinemanual_site_key', '');
 
   // Update the database with topics listing and fetch all topics.
@@ -191,9 +189,11 @@ function inlinemanual_topics_fetch_all() {
           ))
           ->execute();
     }
+    return TRUE;
   }
   catch (InlineManual_Error $e) {
     watchdog('inm', 'InlineManual API request failed: %error.', array('%error' => $e->getMessage(), WATCHDOG_ERROR));
+    return FALSE;
   }
 }
 

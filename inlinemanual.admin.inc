@@ -91,9 +91,12 @@ function inlinemanual_admin_topics_submit($form, &$form_state) {
  * Page callback for "Refresh topics"
  */
 function inlinemanual_admin_topics_refresh() {
-  inlinemanual_topics_fetch_all();
-  
-  drupal_set_message(t('Topics refreshed'));
+  if (inlinemanual_topics_fetch_all()) {
+    drupal_set_message(t('Topics were successfully refreshed.'));
+  }
+  else {
+    drupal_set_message(t('Topics refresh failed. Please try again or see the <a href="@url">last reports</a> to get more info.', array('@url' => url('admin/reports/dblog'))), 'error');
+  }
   
   drupal_goto('admin/config/services/inlinemanual');
 } 
