@@ -58,7 +58,7 @@ function inlinemanual_static_topics() {
 }
 
  /**
- * Featch all topics from through the InlineManual API
+ * Fetch all topics from through the InlineManual API
  */
 function inlinemanual_topics_fetch_all() {
   
@@ -86,9 +86,11 @@ function inlinemanual_topics_fetch_all() {
           ))
           ->execute();
     }
+    return TRUE;
   }
   catch (InlineManual_Error $e) {
     watchdog('inm', 'InlineManual API request failed: %error.', array('%error' => $e->getMessage(), WATCHDOG_ERROR));
+    return FALSE;
   }
 }
 
