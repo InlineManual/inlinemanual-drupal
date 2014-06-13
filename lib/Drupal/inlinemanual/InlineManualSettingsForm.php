@@ -81,7 +81,7 @@ class InlineManualSettingsForm extends ConfigFormBase {
    * Implements \Drupal\Core\Form\FormInterface::submitForm().
    */
   public function submitForm(array &$form, array &$form_state) {
-    $this->configFactory->get('inlinemanual.settings')
+    $this->config('inlinemanual.settings')
       ->set('site_key', $form_state['values']['inlinemanual_site_key'])
       ->set('widget.title', $form_state['values']['inlinemanual_widget_title'])
       ->set('widget.color', $form_state['values']['inlinemanual_widget_color'])
